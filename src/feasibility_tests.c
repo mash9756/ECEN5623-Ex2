@@ -70,186 +70,203 @@ U32_T ex3_wcet[] = {1, 2, 3};
 U32_T ex4_period[]  = {2, 4, 16};
 U32_T ex4_wcet[]    = {1, 1, 4};
 
-U32_T ex5_period[]  = {2, 4, 16};
-U32_T ex5_wcet[]    = {1, 1, 4};
+U32_T ex5_period[]  = {2, 5, 10};
+U32_T ex5_wcet[]    = {1, 2, 1};
 
-U32_T ex6_period[]  = {2, 4, 16};
-U32_T ex6_wcet[]    = {1, 1, 4};
+U32_T ex6_period[]  = {2, 5, 7, 13};
+U32_T ex6_wcet[]    = {1, 1, 1, 2};
 
-U32_T ex7_period[]  = {2, 4, 16};
-U32_T ex7_wcet[]    = {1, 1, 4};
+U32_T ex7_period[]  = {3, 5, 15};
+U32_T ex7_wcet[]    = {1, 2, 4};
 
-U32_T ex8_period[]  = {2, 4, 16};
-U32_T ex8_wcet[]    = {1, 1, 4};
+U32_T ex8_period[]  = {2, 5, 7, 13};
+U32_T ex8_wcet[]    = {1, 1, 1, 2};
 
-U32_T ex9_period[]  = {2, 4, 16};
-U32_T ex9_wcet[]    = {1, 1, 4};
+U32_T ex9_period[]  = {6, 8, 12, 24};
+U32_T ex9_wcet[]    = {1, 2, 4, 6};
 
 int completion_time_feasibility(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[]);
 int scheduling_point_feasibility(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[]);
 int rate_monotonic_least_upper_bound(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[]);
 
+void print_test_results(U32_T numServices, U32_T period[], U32_T wcet[], double util){
+
+    printf("\nCompletion Time:  ");
+    if(completion_time_feasibility(numServices, period, wcet, period) == TRUE)
+        printf("FEASIBLE\n");
+    else
+        printf("INFEASIBLE\n");
+
+    printf("Scheduling Point: ");
+    if(scheduling_point_feasibility(numServices, period, wcet, period) == TRUE)
+        printf("FEASIBLE\n\n");
+    else
+        printf("INFEASIBLE\n\n");
+
+    if(rate_monotonic_least_upper_bound(numServices, period, wcet, period) == TRUE)
+        printf("\nRM LUB: FEASIBLE\n");
+    else
+        printf("\nRM LUB: INFEASIBLE\n");
+
+    printf("EDF: \t");
+    if(util < 100)
+        printf("FEASIBLE\n");
+    else
+        printf("INFEASIBLE\n");
+
+    printf("LLF: \t");
+    if(util < 100)
+        printf("FEASIBLE\n");
+    else
+        printf("INFEASIBLE\n");
+}
 
 int main(void)
 { 
-    int i;
-	U32_T numServices;
-    
-    printf("******** Completion Test Feasibility Example\n");
-   
-    printf("Ex-0 U=%4.2f \% (C1=1, C2=1, C3=2; T1=2, T2=10, T3=15; T=D): ",
-		   ((1.0/2.0)*100.0 + (1.0/10.0)*100.0 + (2.0/15.0)*100.0));
-	numServices = 3;
-    if(completion_time_feasibility(numServices, ex0_period, ex0_wcet, ex0_period) == TRUE)
-        printf("CT test FEASIBLE\n");
-    else
-        printf("CT test INFEASIBLE\n");
+    double utilization  = 0;
+	U32_T numServices   = 0;
 
-    if(rate_monotonic_least_upper_bound(numServices, ex0_period, ex0_wcet, ex0_period) == TRUE)
-        printf("RM LUB FEASIBLE\n");
-    else
-        printf("RM LUB INFEASIBLE\n");
-    printf("\n");
+/*****************************************************************************************************************/
+    utilization = (double) ((double)((double)(ex0_wcet[0]/(double)ex0_period[0]) * 100) +
+                            (double)((double)(ex0_wcet[1]/(double)ex0_period[1]) * 100) +
+                            (double)(((double)ex0_wcet[2]/(double)ex0_period[2]) * 100));
+    numServices = 3;
 
-    printf("Ex-1 U=%4.2f\% (C1=1, C2=1, C3=2; T1=2, T2=5, T3=7; T=D): ", 
-		   ((1.0/2.0)*100.0 + (1.0/5.0)*100.0 + (2.0/7.0)*100.0));
-	numServices = 3;
-    if(completion_time_feasibility(numServices, ex1_period, ex1_wcet, ex1_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
+    printf("************************************************************************\n");
+    printf("Ex-0 U=%4.2f\% (C1=%d, C2=%d, C3=%d; T1=%d, T2=%d, T3=%d; T=D)",
+            utilization, ex0_wcet[0], ex0_wcet[1], ex0_wcet[2], 
+            ex0_period[0], ex0_period[1], ex0_period[2]);
 
-    if(rate_monotonic_least_upper_bound(numServices, ex1_period, ex1_wcet, ex1_period) == TRUE)
-        printf("RM LUB FEASIBLE\n");
-    else
-        printf("RM LUB INFEASIBLE\n");
-    printf("\n");
+    print_test_results(numServices, ex0_period, ex0_wcet, utilization);
+/*****************************************************************************************************************/
 
-	
-    printf("Ex-2 U=%4.2f\% (C1=1, C2=1, C3=1, C4=2; T1=2, T2=5, T3=7, T4=13; T=D): ",
-		   ((1.0/2.0)*100.0 + (1.0/5.0)*100.0 + (1.0/7.0)*100.0 + (2.0/13.0)*100.0));
-	numServices = 4;
-    if(completion_time_feasibility(numServices, ex2_period, ex2_wcet, ex2_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
+/*****************************************************************************************************************/
+    utilization = (double) ((double)((double)(ex1_wcet[0]/(double)ex1_period[0]) * 100) +
+                            (double)((double)(ex1_wcet[1]/(double)ex1_period[1]) * 100) +
+                            (double)(((double)ex1_wcet[2]/(double)ex1_period[2]) * 100));
+    numServices = 3;
 
-    if(rate_monotonic_least_upper_bound(numServices, ex2_period, ex2_wcet, ex2_period) == TRUE)
-        printf("RM LUB FEASIBLE\n");
-    else
-        printf("RM LUB INFEASIBLE\n");
-    printf("\n");
+    printf("************************************************************************\n");
+    printf("Ex-1 U=%4.2f\% (C1=%d, C2=%d, C3=%d; T1=%d, T2=%d, T3=%d; T=D)",
+            utilization, ex1_wcet[0], ex1_wcet[1], ex1_wcet[2], 
+            ex1_period[0], ex1_period[1], ex1_period[2]);
 
+    print_test_results(numServices, ex1_period, ex1_wcet, utilization);
+/*****************************************************************************************************************/
 
-    printf("Ex-3 U=%4.2f\% (C1=1, C2=2, C3=3; T1=3, T2=5, T3=15; T=D): ",
-		   ((1.0/3.0)*100.0 + (2.0/5.0)*100.0 + (3.0/15.0)*100.0));
-	numServices = 3;
-    if(completion_time_feasibility(numServices, ex3_period, ex3_wcet, ex3_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
+/*****************************************************************************************************************/
+    utilization = (double) ((double)((double)(ex2_wcet[0]/(double)ex2_period[0]) * 100) +
+                            (double)((double)(ex2_wcet[1]/(double)ex2_period[1]) * 100) +
+                            (double)(((double)ex2_wcet[2]/(double)ex2_period[2]) * 100) +
+                            (double)(((double)ex2_wcet[3]/(double)ex2_period[3]) * 100));
+    numServices = 4;
 
-    if(rate_monotonic_least_upper_bound(numServices, ex3_period, ex3_wcet, ex3_period) == TRUE)
-        printf("RM LUB FEASIBLE\n");
-    else
-        printf("RM LUB INFEASIBLE\n");
-    printf("\n");
+    printf("************************************************************************\n");
+    printf("Ex-2 U=%4.2f\% (C1=%d, C2=%d, C3=%d, C4=%d; T1=%d, T2=%d, T3=%d, T4=%d; T=D)",
+            utilization, ex2_wcet[0], ex2_wcet[1], ex2_wcet[2], ex2_wcet[3],
+            ex2_period[0], ex2_period[1], ex2_period[2], ex2_period[3]);
 
-	
-    printf("Ex-4 U=%4.2f\% (C1=1, C2=1, C3=4; T1=2, T2=4, T3=16; T=D): ",
-		   ((1.0/2.0)*100.0 + (1.0/4.0)*100.0 + (4.0/16.0)*100.0));
-	numServices = 3;
-    if(completion_time_feasibility(numServices, ex4_period, ex4_wcet, ex4_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
+    print_test_results(numServices, ex2_period, ex2_wcet, utilization);
+/*****************************************************************************************************************/
 
-    if(rate_monotonic_least_upper_bound(numServices, ex4_period, ex4_wcet, ex4_period) == TRUE)
-        printf("RM LUB FEASIBLE\n");
-    else
-        printf("RM LUB INFEASIBLE\n");
-    printf("\n");
+/*****************************************************************************************************************/
+    utilization = (double) ((double)((double)(ex3_wcet[0]/(double)ex3_period[0]) * 100) +
+                            (double)((double)(ex3_wcet[1]/(double)ex3_period[1]) * 100) +
+                            (double)(((double)ex3_wcet[2]/(double)ex3_period[2]) * 100));
+    numServices = 3;
 
+    printf("************************************************************************\n");
+    printf("Ex-3 U=%4.2f\% (C1=%d, C2=%d, C3=%d; T1=%d, T2=%d, T3=%d; T=D)",
+            utilization, ex3_wcet[0], ex3_wcet[1], ex3_wcet[2], 
+            ex3_period[0], ex3_period[1], ex3_period[2]);
 
+    print_test_results(numServices, ex3_period, ex3_wcet, utilization);
+/*****************************************************************************************************************/
 
-    printf("\n\n");
-    printf("******** Scheduling Point Feasibility Example\n");
+/*****************************************************************************************************************/
+    utilization = (double) ((double)((double)(ex4_wcet[0]/(double)ex4_period[0]) * 100) +
+                            (double)((double)(ex4_wcet[1]/(double)ex4_period[1]) * 100) +
+                            (double)(((double)ex4_wcet[2]/(double)ex4_period[2]) * 100));
+    numServices = 3;
 
-    printf("Ex-0 U=%4.2f\% (C1=1, C2=1, C3=2; T1=2, T2=10, T3=15; T=D): ",
-		   ((1.0/2.0)*100.0 + (1.0/10.0)*100.0 + (2.0/15.0)*100.0));
-	numServices = 3;
-    if(scheduling_point_feasibility(numServices, ex0_period, ex0_wcet, ex0_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
+    printf("************************************************************************\n");
+    printf("Ex-4 U=%4.2f\% (C1=%d, C2=%d, C3=%d; T1=%d, T2=%d, T3=%d; T=D)",
+            utilization, ex4_wcet[0], ex4_wcet[1], ex4_wcet[2], 
+            ex4_period[0], ex4_period[1], ex4_period[2]);
 
-    if(rate_monotonic_least_upper_bound(numServices, ex0_period, ex0_wcet, ex0_period) == TRUE)
-        printf("RM LUB FEASIBLE\n");
-    else
-        printf("RM LUB INFEASIBLE\n");
-    printf("\n");
+    print_test_results(numServices, ex4_period, ex4_wcet, utilization);
+/*****************************************************************************************************************/
 
+/*****************************************************************************************************************/
+    utilization = (double) ((double)((double)(ex5_wcet[0]/(double)ex5_period[0]) * 100) +
+                            (double)((double)(ex5_wcet[1]/(double)ex5_period[1]) * 100) +
+                            (double)(((double)ex5_wcet[2]/(double)ex5_period[2]) * 100));
+    numServices = 3;
 
-    printf("Ex-1 U=%4.2f\% (C1=1, C2=1, C3=2; T1=2, T2=5, T3=7; T=D): ", 
-		   ((1.0/2.0)*100.0 + (1.0/5.0)*100.0 + (2.0/7.0)*100.0));
-	numServices = 3;
-    if(scheduling_point_feasibility(numServices, ex1_period, ex1_wcet, ex1_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
+    printf("************************************************************************\n");
+    printf("Ex-5 U=%4.2f\% (C1=%d, C2=%d, C3=%d; T1=%d, T2=%d, T3=%d; T=D)",
+            utilization, ex5_wcet[0], ex5_wcet[1], ex5_wcet[2], 
+            ex5_period[0], ex5_period[1], ex5_period[2]);
 
-    if(rate_monotonic_least_upper_bound(numServices, ex1_period, ex1_wcet, ex1_period) == TRUE)
-        printf("RM LUB FEASIBLE\n");
-    else
-        printf("RM LUB INFEASIBLE\n");
-    printf("\n");
+    print_test_results(numServices, ex5_period, ex5_wcet, utilization);
+/*****************************************************************************************************************/
 
-	
-    printf("Ex-2 U=%4.2f\% (C1=1, C2=1, C3=1, C4=2; T1=2, T2=5, T3=7, T4=13; T=D): ",
-		   ((1.0/2.0)*100.0 + (1.0/5.0)*100.0 + (1.0/7.0)*100.0 + (2.0/13.0)*100.0));
-	numServices = 4;
-    if(scheduling_point_feasibility(numServices, ex2_period, ex2_wcet, ex2_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
+/*****************************************************************************************************************/
+    utilization = (double) ((double)((double)(ex6_wcet[0]/(double)ex6_period[0]) * 100) +
+                            (double)((double)(ex6_wcet[1]/(double)ex6_period[1]) * 100) +
+                            (double)((double)(ex6_wcet[2]/(double)ex6_period[2]) * 100) +
+                            (double)(((double)ex6_wcet[3]/(double)ex6_period[3]) * 100));
+    numServices = 4;
+    printf("************************************************************************\n");
+    printf("Ex-6 U=%4.2f\% (C1=%d, C2=%d, C3=%d C4=%d; T1=%d, T2=%d, T3=%d T4=%d; T=D): ",
+            utilization, ex6_wcet[0], ex6_wcet[1], ex6_wcet[2], ex6_wcet[3],
+            ex6_period[0], ex6_period[1], ex6_period[2], ex6_period[3]);
 
-    if(rate_monotonic_least_upper_bound(numServices, ex2_period, ex2_wcet, ex2_period) == TRUE)
-        printf("RM LUB FEASIBLE\n");
-    else
-        printf("RM LUB INFEASIBLE\n");
-    printf("\n");
+    print_test_results(numServices, ex6_period, ex6_wcet, utilization);
+/*****************************************************************************************************************/
 
+/*****************************************************************************************************************/
+    utilization = (double) ((double)((double)(ex7_wcet[0]/(double)ex7_period[0]) * 100) +
+                            (double)((double)(ex7_wcet[1]/(double)ex7_period[1]) * 100) +
+                            (double)(((double)ex7_wcet[2]/(double)ex7_period[2]) * 100));
+    numServices = 3;
+    printf("************************************************************************\n");
+    printf("Ex-7 U=%4.2f\% (C1=%d, C2=%d, C3=%d; T1=%d, T2=%d, T3=%d; T=D): ",
+            utilization, ex7_wcet[0], ex7_wcet[1], ex7_wcet[2],
+            ex7_period[0], ex7_period[1], ex7_period[2]);
 
-    printf("Ex-3 U=%4.2f\% (C1=1, C2=2, C3=3; T1=3, T2=5, T3=15; T=D): ",
-		   ((1.0/3.0)*100.0 + (2.0/5.0)*100.0 + (3.0/15.0)*100.0));
-	numServices = 3;
-    if(scheduling_point_feasibility(numServices, ex3_period, ex3_wcet, ex3_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
+    print_test_results(numServices, ex7_period, ex7_wcet, utilization);
+/*****************************************************************************************************************/
 
-    if(rate_monotonic_least_upper_bound(numServices, ex3_period, ex3_wcet, ex3_period) == TRUE)
-        printf("RM LUB FEASIBLE\n");
-    else
-        printf("RM LUB INFEASIBLE\n");
-    printf("\n");
+/*****************************************************************************************************************/
+    utilization = (double) ((double)((double)(ex8_wcet[0]/(double)ex8_period[0]) * 100) +
+                            (double)((double)(ex8_wcet[1]/(double)ex8_period[1]) * 100) +
+                            (double)((double)(ex8_wcet[2]/(double)ex8_period[2]) * 100) +
+                            (double)((double)(ex8_wcet[3]/(double)ex8_period[3]) * 100));
+    numServices = 4;
+    printf("************************************************************************\n");
+    printf("Ex-8 U=%4.2f\% (C1=%d, C2=%d, C3=%d C4=%d; T1=%d, T2=%d, T3=%d T4=%d; T=D): ",
+            utilization, ex8_wcet[0], ex8_wcet[1], ex8_wcet[2], ex8_wcet[3],
+            ex8_period[0], ex8_period[1], ex8_period[2], ex8_period[3]);
 
-	
-    printf("Ex-4 U=%4.2f\% (C1=1, C2=1, C3=4; T1=2, T2=4, T3=16; T=D): ",
-		   ((1.0/2.0)*100.0 + (1.0/4.0)*100.0 + (4.0/16.0)*100.0));
-	numServices = 3;
-    if(scheduling_point_feasibility(numServices, ex4_period, ex4_wcet, ex4_period) == TRUE)
-        printf("FEASIBLE\n");
-    else
-        printf("INFEASIBLE\n");
+    print_test_results(numServices, ex8_period, ex8_wcet, utilization);
+/*****************************************************************************************************************/
 
+/*****************************************************************************************************************/
+    utilization = (double) ((double)((double)(ex9_wcet[0]/(double)ex9_period[0]) * 100) +
+                            (double)((double)(ex9_wcet[1]/(double)ex9_period[1]) * 100) +
+                            (double)((double)(ex9_wcet[2]/(double)ex9_period[2]) * 100) +
+                            (double)((double)(ex9_wcet[3]/(double)ex9_period[3]) * 100));
+    numServices = 4;    
+    printf("************************************************************************\n");
+    printf("Ex-9 U=%4.2f\% (C1=%d, C2=%d, C3=%d C4=%d; T1=%d, T2=%d, T3=%d T4=%d; T=D)",
+            utilization, ex9_wcet[0], ex9_wcet[1], ex9_wcet[2], ex9_wcet[3],
+            ex9_period[0], ex9_period[1], ex9_period[2], ex9_period[3]);
 
-    if(rate_monotonic_least_upper_bound(numServices, ex4_period, ex4_wcet, ex4_period) == TRUE)
-        printf("RM LUB FEASIBLE\n");
-    else
-        printf("RM LUB INFEASIBLE\n");
-    printf("\n");
+    print_test_results(numServices, ex9_period, ex9_wcet, utilization);
+    printf("************************************************************************\n");
 
+/*****************************************************************************************************************/
 }
 
 
@@ -257,9 +274,6 @@ int rate_monotonic_least_upper_bound(U32_T numServices, U32_T period[], U32_T wc
 {
   double utility_sum=0.0, lub=0.0;
   int idx;
-
-  printf("for %d, utility_sum = %lf\n", numServices, utility_sum);
-
   // Sum the C(i) over the T(i)
   for(idx=0; idx < numServices; idx++)
   {
