@@ -1,3 +1,13 @@
+/**
+ *  @name   feasibility_tests
+ *  @brief  runs a suite of scheduling feasibility tests on 10 discrete examples
+ * 
+ *  @author Mark Sherman
+ *  @date   02/22/2024
+ * 
+ *  @cite   original by Sam Siewert, see comment below
+*/
+
 // Sam Siewert, August 2020
 //
 // This example code provides feasibiltiy decision tests for single core fixed priority rate monontic systems only (not dyanmic priority such as deadline driven
@@ -85,11 +95,110 @@ U32_T ex8_wcet[]    = {1, 1, 1, 2};
 U32_T ex9_period[]  = {6, 8, 12, 24};
 U32_T ex9_wcet[]    = {1, 2, 4, 6};
 
-int completion_time_feasibility(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[]);
-int scheduling_point_feasibility(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[]);
-int rate_monotonic_least_upper_bound(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[]);
+int rate_monotonic_least_upper_bound(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[]) {
+  double utility_sum=0.0, lub=0.0;
+  int idx;
+  // Sum the C(i) over the T(i)
+  for(idx=0; idx < numServices; idx++)
+  {
+    utility_sum += ((double)wcet[idx] / (double)period[idx]);
+    printf("\tS%d, wcet=%.4lf, period=%.4lf, utility_sum = %.4lf\n", idx, (double)wcet[idx], (double)period[idx], utility_sum);
+  }
+  printf("\tSystem Utilization = %.4lf\n", utility_sum);
 
-void print_test_results(U32_T numServices, U32_T period[], U32_T wcet[], double util){
+  // Compute LUB for number of services
+  lub = (double)numServices * (pow(2.0, (1.0/((double)numServices))) - 1.0);
+  printf("\tLUB = %.4lf\n", lub);
+
+  // Compare the utilty to the bound and return feasibility
+  if(utility_sum <= lub)
+	  return TRUE;
+  else
+	  return FALSE;
+}
+
+int completion_time_feasibility(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[]) {
+  int i, j;
+  U32_T an, anext;
+  
+  // assume feasible until we find otherwise
+  int set_feasible=TRUE;
+   
+  //printf("numServices=%d\n", numServices);
+ 
+  // For all services in the analysis 
+  for (i=0; i < numServices; i++)
+  {
+       an=0; anext=0;
+       
+       for (j=0; j <= i; j++)
+       {
+           an+=wcet[j];
+       }
+       
+	   //printf("i=%d, an=%d\n", i, an);
+
+       while(1)
+       {
+             anext=wcet[i];
+	     
+             for (j=0; j < i; j++)
+                 anext += ceil(((double)an)/((double)period[j]))*wcet[j];
+		 
+             if (anext == an)
+                break;
+             else
+                an=anext;
+
+			 //printf("an=%d, anext=%d\n", an, anext);
+       }
+       
+	   //printf("an=%d, deadline[%d]=%d\n", an, i, deadline[i]);
+
+       if (an > deadline[i])
+       {
+          set_feasible=FALSE;
+       }
+  }
+  
+  return set_feasible;
+}
+
+int scheduling_point_feasibility(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[]) {
+   int rc = TRUE, i, j, k, l, status, temp;
+
+   // For all services in the analysis
+   for (i=0; i < numServices; i++) // iterate from highest to lowest priority
+   {
+      status=0;
+
+      // Look for all available CPU minus what has been used by higher priority services
+      for (k=0; k<=i; k++) 
+      {
+	  // find available CPU windows and take them
+          for (l=1; l <= (floor((double)period[i]/(double)period[k])); l++)
+          {
+               temp=0;
+
+               for (j=0; j<=i; j++) temp += wcet[j] * ceil((double)l*(double)period[k]/(double)period[j]);
+
+	       // Can we get the CPU we need or not?
+               if (temp <= (l*period[k]))
+			   {
+				   // insufficient CPU during our period, therefore infeasible
+				   status=1;
+				   break;
+			   }
+           }
+           if (status) break;
+      }
+
+      if (!status) rc=FALSE;
+   }
+   return rc;
+}
+
+void print_test_results(U32_T numServices, U32_T period[], U32_T wcet[], double util) {
 
     printf("\nCompletion Time:  ");
     if(completion_time_feasibility(numServices, period, wcet, period) == TRUE)
@@ -109,20 +218,19 @@ void print_test_results(U32_T numServices, U32_T period[], U32_T wcet[], double 
         printf("\nRM LUB: INFEASIBLE\n");
 
     printf("EDF: \t");
-    if(util < 100)
+    if(util <= 100)
         printf("FEASIBLE\n");
     else
         printf("INFEASIBLE\n");
 
     printf("LLF: \t");
-    if(util < 100)
+    if(util <= 100)
         printf("FEASIBLE\n");
     else
         printf("INFEASIBLE\n");
 }
 
-int main(void)
-{ 
+int main(void) { 
     double utilization  = 0;
 	U32_T numServices   = 0;
 
@@ -265,116 +373,5 @@ int main(void)
 
     print_test_results(numServices, ex9_period, ex9_wcet, utilization);
     printf("************************************************************************\n");
-
 /*****************************************************************************************************************/
-}
-
-
-int rate_monotonic_least_upper_bound(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[])
-{
-  double utility_sum=0.0, lub=0.0;
-  int idx;
-  // Sum the C(i) over the T(i)
-  for(idx=0; idx < numServices; idx++)
-  {
-    utility_sum += ((double)wcet[idx] / (double)period[idx]);
-    printf("for %d, wcet=%lf, period=%lf, utility_sum = %lf\n", idx, (double)wcet[idx], (double)period[idx], utility_sum);
-  }
-  printf("utility_sum = %lf\n", utility_sum);
-
-  // Compute LUB for number of services
-  lub = (double)numServices * (pow(2.0, (1.0/((double)numServices))) - 1.0);
-  printf("LUB = %lf\n", lub);
-
-  // Compare the utilty to the bound and return feasibility
-  if(utility_sum <= lub)
-	  return TRUE;
-  else
-	  return FALSE;
-}
-
-
-int completion_time_feasibility(U32_T numServices, U32_T period[], U32_T wcet[], U32_T deadline[])
-{
-  int i, j;
-  U32_T an, anext;
-  
-  // assume feasible until we find otherwise
-  int set_feasible=TRUE;
-   
-  //printf("numServices=%d\n", numServices);
- 
-  // For all services in the analysis 
-  for (i=0; i < numServices; i++)
-  {
-       an=0; anext=0;
-       
-       for (j=0; j <= i; j++)
-       {
-           an+=wcet[j];
-       }
-       
-	   //printf("i=%d, an=%d\n", i, an);
-
-       while(1)
-       {
-             anext=wcet[i];
-	     
-             for (j=0; j < i; j++)
-                 anext += ceil(((double)an)/((double)period[j]))*wcet[j];
-		 
-             if (anext == an)
-                break;
-             else
-                an=anext;
-
-			 //printf("an=%d, anext=%d\n", an, anext);
-       }
-       
-	   //printf("an=%d, deadline[%d]=%d\n", an, i, deadline[i]);
-
-       if (an > deadline[i])
-       {
-          set_feasible=FALSE;
-       }
-  }
-  
-  return set_feasible;
-}
-
-
-int scheduling_point_feasibility(U32_T numServices, U32_T period[], 
-				 U32_T wcet[], U32_T deadline[])
-{
-   int rc = TRUE, i, j, k, l, status, temp;
-
-   // For all services in the analysis
-   for (i=0; i < numServices; i++) // iterate from highest to lowest priority
-   {
-      status=0;
-
-      // Look for all available CPU minus what has been used by higher priority services
-      for (k=0; k<=i; k++) 
-      {
-	  // find available CPU windows and take them
-          for (l=1; l <= (floor((double)period[i]/(double)period[k])); l++)
-          {
-               temp=0;
-
-               for (j=0; j<=i; j++) temp += wcet[j] * ceil((double)l*(double)period[k]/(double)period[j]);
-
-	       // Can we get the CPU we need or not?
-               if (temp <= (l*period[k]))
-			   {
-				   // insufficient CPU during our period, therefore infeasible
-				   status=1;
-				   break;
-			   }
-           }
-           if (status) break;
-      }
-
-      if (!status) rc=FALSE;
-   }
-   return rc;
 }
